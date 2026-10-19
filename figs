@@ -1,0 +1,351 @@
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+from matplotlib.ticker import PercentFormatter
+
+
+# =========================================================
+# DATA
+# =========================================================
+
+scenarios = [
+    {
+        "name": "With degradation – DA",
+        "time": [0, 1, 2, 3, 3 + 231 / 365],
+        "soh": [
+            1.0,
+            0.936513032,
+            0.880886795,
+            0.829516853,
+            0.799532325,
+        ],
+        "color": "#2166AC",
+        "marker": "o",
+    },
+    {
+        "name": "No degradation – DA",
+        "time": [0, 1, 2, 2 + 259 / 365],
+        "soh": [
+            1.0,
+            0.921240783,
+            0.848616886,
+            0.798868721,
+        ],
+        "color": "#67A9CF",
+        "marker": "s",
+    },
+    {
+        "name": "With degradation – DA+aFRR+mFRR",
+        "time": [0, 1, 2, 2 + 119 / 365],
+        "soh": [
+            1.0,
+            0.907057461,
+            0.824115571,
+            0.798965230,
+        ],
+        "color": "#D6604D",
+        "marker": "^",
+    },
+    {
+        "name": "No degradation – DA+aFRR+mFRR",
+        "time": [0, 1, 1 + 322 / 365],
+        "soh": [
+            1.0,
+            0.889781092,
+            0.798414199,
+        ],
+        "color": "#7B3294",
+        "marker": "D",
+    },
+]
+
+
+# =========================================================
+# STYLE
+# =========================================================
+
+plt.rcParams.update({
+    "font.family": "DejaVu Sans",
+    "font.size": 10,
+    "axes.titlesize": 14,
+    "axes.labelsize": 11,
+    "xtick.labelsize": 9,
+    "ytick.labelsize": 9,
+})
+
+
+# =========================================================
+# FIGURE AND LAYOUT
+# =========================================================
+
+fig = plt.figure(
+    figsize=(12, 7.8),
+    dpi=160,
+    facecolor="white",
+)
+
+grid = fig.add_gridspec(
+    nrows=2,
+    ncols=1,
+    height_ratios=[4.2, 1.35],
+    hspace=0.20,
+)
+
+ax = fig.add_subplot(grid[0])
+table_ax = fig.add_subplot(grid[1])
+
+ax.set_facecolor("white")
+table_ax.axis("off")
+
+
+# =========================================================
+# PLOT EACH SCENARIO
+# =========================================================
+
+for scenario in scenarios:
+    ax.plot(
+        scenario["time"],
+        scenario["soh"],
+        color=scenario["color"],
+        marker=scenario["marker"],
+        linestyle="-",
+        linewidth=2.6,
+        markersize=7,
+        markeredgecolor="white",
+        markeredgewidth=0.9,
+        label=scenario["name"],
+        zorder=4,
+    )
+
+
+# =========================================================
+# 80% SOH THRESHOLD
+# =========================================================
+
+ax.axhline(
+    y=0.80,
+    color="#B2182B",
+    linestyle=(0, (4, 3)),
+    linewidth=1.8,
+    zorder=2,
+)
+
+
+
+
+# =========================================================
+# AXES FORMATTING
+# =========================================================
+
+ax.set_title(
+    "Battery State of Health Under Various Operating Strategies",
+    fontweight="bold",
+    pad=16,
+)
+
+ax.set_xlabel(
+    "Operating time (years)",
+    labelpad=8,
+)
+
+ax.set_ylabel(
+    "State of health (SOH)",
+    labelpad=8,
+)
+
+ax.set_xlim(0, 4.0)
+ax.set_ylim(0.775, 1.01)
+
+ax.set_xticks([
+    0,
+    0.5,
+    1.0,
+    1.5,
+    2.0,
+    2.5,
+    3.0,
+    3.5,
+    4.0,
+])
+
+ax.set_yticks([
+    0.80,
+    0.85,
+    0.90,
+    0.95,
+    1.00,
+])
+
+ax.yaxis.set_major_formatter(
+    PercentFormatter(
+        xmax=1.0,
+        decimals=0,
+    )
+)
+
+ax.grid(
+    True,
+    color="#D9DEE5",
+    linestyle="--",
+    linewidth=0.65,
+    alpha=0.75,
+)
+
+ax.set_axisbelow(True)
+
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+
+ax.spines["left"].set_color("#707070")
+ax.spines["bottom"].set_color("#707070")
+
+
+# =========================================================
+# LEGEND
+# =========================================================
+
+legend = ax.legend(
+    loc="upper center",
+    bbox_to_anchor=(0.5, 1.01),
+    ncol=2,
+    frameon=False,
+    fontsize=9,
+    handlelength=3,
+    columnspacing=2.0,
+)
+
+for text in legend.get_texts():
+    text.set_color("#252525")
+
+
+# =========================================================
+# SUMMARY TABLE
+# =========================================================
+
+table_columns = [
+    "Scenario",
+    "Market participation",
+    "Degradation treatment",
+    "Lifetime",
+    "Final SOH",
+]
+
+table_rows = [
+    [
+        "1",
+        "DA",
+        "Integrated in optimization",
+        f"{3 + 231 / 365:.2f} years",
+        f"{0.799532325:.1%}",
+    ],
+    [
+        "2",
+        "DA",
+        "Post-processing only",
+        f"{2 + 259 / 365:.2f} years",
+        f"{0.798868721:.1%}",
+    ],
+    [
+        "3",
+        "DA + aFRR + mFRR",
+        "Integrated in optimization",
+        f"{2 + 119 / 365:.2f} years",
+        f"{0.798965230:.1%}",
+    ],
+    [
+        "4",
+        "DA + aFRR + mFRR",
+        "Post-processing only",
+        f"{1 + 322 / 365:.2f} years",
+        f"{0.798414199:.1%}",
+    ],
+]
+
+table = table_ax.table(
+    cellText=table_rows,
+    colLabels=table_columns,
+    cellLoc="center",
+    colLoc="center",
+    loc="center",
+    colWidths=[
+        0.09,
+        0.23,
+        0.31,
+        0.18,
+        0.15,
+    ],
+)
+
+table.auto_set_font_size(False)
+table.set_fontsize(9)
+table.scale(1, 1.55)
+
+
+# Header styling
+for column in range(len(table_columns)):
+    header_cell = table[(0, column)]
+    header_cell.set_facecolor("#E8ECF2")
+    header_cell.set_text_props(
+        fontweight="bold",
+        color="#202020",
+    )
+    header_cell.set_edgecolor("#B8BEC7")
+    header_cell.set_linewidth(0.8)
+
+
+# Row styling
+row_colors = [
+    "#DCE9F7",
+    "#E8F3FA",
+    "#FBE5E0",
+    "#EFE2F4",
+]
+
+for row in range(1, len(table_rows) + 1):
+    for column in range(len(table_columns)):
+        cell = table[(row, column)]
+        cell.set_facecolor(row_colors[row - 1])
+        cell.set_edgecolor("white")
+        cell.set_linewidth(1.0)
+
+    # Make scenario number use the same color as its line
+    table[(row, 0)].set_text_props(
+        color=scenarios[row - 1]["color"],
+        fontweight="bold",
+    )
+
+
+# =========================================================
+# SAVE
+# =========================================================
+
+OUTPUT_DIR = Path(__file__).resolve().parent
+
+png_file = OUTPUT_DIR / "battery_soh_comparison_with_table.png"
+pdf_file = OUTPUT_DIR / "battery_soh_comparison_with_table.pdf"
+
+fig.subplots_adjust(
+    top=0.88,
+    bottom=0.06,
+    left=0.09,
+    right=0.98,
+)
+
+fig.savefig(
+    png_file,
+    dpi=300,
+    bbox_inches="tight",
+    facecolor="white",
+)
+
+fig.savefig(
+    pdf_file,
+    bbox_inches="tight",
+    facecolor="white",
+)
+
+plt.close(fig)
+
+print("Figure generated successfully.")
+print(f"PNG: {png_file}")
+print(f"PDF: {pdf_file}")
